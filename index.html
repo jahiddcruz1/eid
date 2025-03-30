@@ -13,6 +13,8 @@
             --pastel-green: #c1f2b0;
             --gold: #ffd700;
             --islamic-blue: #0a3d62;
+            --btn-color: #079992;
+            --btn-hover: #057a6e;
         }
         
         body {
@@ -26,18 +28,22 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            touch-action: manipulation;
         }
         
         /* === Main Card Container === */
-        .card-container {
+        .card-book {
             width: 90%;
             max-width: 350px;
             height: 500px;
+            margin: 30px auto;
             position: relative;
-            perspective: 1500px;
+            transform: scale(0.9);
+            opacity: 0;
+            animation: cardEntrance 0.8s ease-out forwards;
         }
         
-        /* === Cover === */
+        /* === Cover Page === */
         .cover {
             width: 100%;
             height: 100%;
@@ -46,11 +52,19 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
-            transform-style: preserve-3d;
-            transition: transform 1s ease;
-            z-index: 2;
+            z-index: 10;
             border: 5px double var(--gold);
             cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .cover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .cover:active {
+            transform: scale(0.98);
         }
         
         .cover::before {
@@ -72,6 +86,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            position: relative;
+            z-index: 1;
         }
         
         .crescent {
@@ -91,12 +107,18 @@
             color: var(--islamic-blue);
             margin: 10px 0;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: textEntrance 0.8s ease-out 0.3s forwards;
         }
         
         .cover-subtitle {
             font-size: 1.2rem;
             color: var(--islamic-blue);
             margin-bottom: 30px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: textEntrance 0.8s ease-out 0.4s forwards;
         }
         
         .open-instruction {
@@ -105,77 +127,43 @@
             font-style: italic;
             color: var(--islamic-blue);
             animation: pulse 2s infinite;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: textEntrance 0.8s ease-out 0.5s forwards, pulse 2s infinite 1.3s;
         }
         
-        /* === Scratch Panel === */
-        .scratch-panel {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 80%;
-            height: 120px;
-            background: #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            z-index: 3;
-        }
-        
-        .scratch-area {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-        
-        .scratch-overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: repeating-linear-gradient(
-                45deg,
-                #ccc,
-                #ccc 10px,
-                #bbb 10px,
-                #bbb 20px
-            );
-            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="%23000" stroke-width="2"/></svg>') 12 12, auto;
-        }
-        
-        .scratch-message {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: var(--gold);
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        
-        /* === Inside Card === */
-        .inside {
+        /* === Pages === */
+        .pages {
             position: absolute;
             top: 0;
-            right: -100%;
+            left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #fff9f9 0%, #fff0f0 100%);
+            overflow: hidden;
+            display: none;
             border-radius: 15px;
-            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .page {
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
             box-sizing: border-box;
-            transition: right 0.8s ease;
-            z-index: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            background: linear-gradient(135deg, #fff9f9 0%, #fff0f0 100%);
             border: 1px solid rgba(255,215,0,0.3);
             box-shadow: inset 0 0 20px rgba(255,215,0,0.1);
         }
         
-        .inside.active {
-            right: 0;
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
         }
         
         .page-title {
@@ -192,8 +180,39 @@
             font-size: 1.1rem;
             line-height: 1.8;
             text-align: center;
+            height: calc(100% - 150px);
+            overflow-y: auto;
+            padding: 10px;
         }
         
+        .page-nav {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 50px);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .nav-btn {
+            background: var(--btn-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Amiri', serif;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .nav-btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+        
+        /* === Special Photo === */
         .special-photo {
             width: 150px;
             height: 150px;
@@ -205,39 +224,34 @@
             align-items: center;
             overflow: hidden;
             border: 3px solid var(--gold);
+            position: relative;
         }
         
-        .special-quote {
-            font-style: italic;
-            color: var(--islamic-blue);
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        
-        .close-btn {
+        .photo-frame {
             position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--gold);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-family: 'Amiri', serif;
-            font-weight: bold;
+            width: 100%;
+            height: 100%;
+            border: 5px solid white;
+            box-sizing: border-box;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
         }
         
-        /* === Animations === */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+        /* === Love Meter === */
+        .love-meter {
+            width: 80%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin: 15px auto;
+            overflow: hidden;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
+        .love-progress {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+            border-radius: 10px;
+            animation: loveProgress 2s ease-out forwards;
         }
         
         /* === Decorative Elements === */
@@ -256,186 +270,284 @@
             animation: swing 4s ease-in-out infinite;
         }
         
+        .date {
+            animation: rotate 8s linear infinite;
+        }
+        
+        /* === Animations === */
+        @keyframes cardEntrance {
+            0% { transform: scale(0.9) translateY(50px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        
+        @keyframes textEntrance {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
         @keyframes swing {
             0%, 100% { transform: rotate(-5deg); }
             50% { transform: rotate(5deg); }
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes loveProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.05); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* === Responsive Design === */
+        @media (max-width: 500px) {
+            .card-book {
+                height: 450px;
+            }
+            
+            .cover-title {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Main Card Container -->
-    <div class="card-container">
-        <!-- Cover -->
+    <div class="card-book">
+        <!-- Cover Page -->
         <div class="cover" id="cover">
             <div class="cover-content">
                 <div class="crescent"></div>
                 <h1 class="cover-title">Eid Mubarak</h1>
-                <p class="cover-subtitle">For My Sweet Lamia</p>
+                <p class="cover-subtitle">For My Sweetest Honey</p>
                 
-                <!-- Scratch Panel -->
-                <div class="scratch-panel">
-                    <div class="scratch-area" id="scratchArea">
-                        <div class="scratch-overlay" id="scratchOverlay"></div>
-                        <div class="scratch-message" id="scratchMessage">
-                            <div>You found a secret!</div>
-                            <div style="font-size: 0.8rem; margin-top: 5px;">"Our love is sweeter than Eid sweets"</div>
-                        </div>
+                <div style="position: relative; width: 80%; margin: 20px auto;">
+                    <div class="love-meter">
+                        <div class="love-progress"></div>
                     </div>
+                    <p style="text-align: center; font-size: 0.8rem; color: var(--islamic-blue);">
+                        Our Love Meter: Infinite ❤️
+                    </p>
                 </div>
                 
                 <p class="open-instruction">Click to Open Card</p>
             </div>
             
             <!-- Decorations -->
-            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ff6b6b' d='M50,10 Q60,0 70,10 Q80,20 70,30 Q60,40 50,30 Q40,20 50,10 Z'/><circle cx='50' cy='10' r='5' fill='%23fff'/></svg>" 
-                 class="decoration flower" style="top: 15%; left: 10%; width: 40px;">
+            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ffd700' d='M50,10 L60,40 L90,40 L65,60 L75,90 L50,70 L25,90 L35,60 L10,40 L40,40 Z'/></svg>" 
+                 class="decoration" style="top: 15%; left: 10%; width: 30px;">
         </div>
         
-        <!-- Inside Card -->
-        <div class="inside" id="insideCard">
-            <h2 class="page-title">To My Honey Lamia</h2>
-            
-            <div class="page-content">
-                <p>Under this blessed moon, I'm endlessly grateful for you. Your smile shines brighter than Eid's lanterns.</p>
-                
-                <div class="special-photo">
-                    <!-- Replace with your photo -->
-                    <div style="text-align: center;">
-                        <div style="font-size: 3rem;">🌙</div>
-                        <div>Your Photo Here</div>
+        <!-- Pages Container -->
+        <div class="pages" id="pages">
+            <!-- Page 1 -->
+            <div class="page active" id="page1">
+                <h2 class="page-title">To My Dearest Lamia</h2>
+                <div class="page-content">
+                    <p>As the crescent moon appears in the sky,</p>
+                    <p>My heart fills with love that will never die.</p>
+                    <p>This Eid is more special because of you,</p>
+                    <p>My sweet Honey, so kind and true.</p>
+                    
+                    <div class="special-photo">
+                        <div class="photo-frame"></div>
+                        <!-- REPLACE THIS DIV with your image tag -->
+                        <img src="https://i.ibb.co.com/gZNQdQ9Z/Chat-GPT-Image-Mar-31-2025-05-31-28-AMj.png" style="width:100%; height:100%; object-fit:cover;">
                     </div>
                 </div>
                 
-                <div class="special-quote">
-                    "Every moment with you feels like Eid"
+                <div class="page-nav">
+                    <button class="nav-btn" onclick="nextPage()">Next ❤️</button>
                 </div>
             </div>
             
-            <button class="close-btn" id="closeBtn">Close Card</button>
+            <!-- Page 2 -->
+            <div class="page" id="page2">
+                <h2 class="page-title">Eid Blessings</h2>
+                <div class="page-content">
+                    <p>May Allah shower you with happiness,</p>
+                    <p>And bless you with endless success.</p>
+                    <p>May your days be as sweet as dates,</p>
+                    <p>And your life filled with loving mates.</p>
+                    
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%238B4513' d='M50,10 L60,30 L80,30 L65,45 L75,70 L50,55 L25,70 L35,45 L20,30 L40,30 Z'/></svg>" 
+                         style="width: 50px; margin: 20px auto; display: block; animation: float 3s ease-in-out infinite;">
+                </div>
+                
+                <div class="page-nav">
+                    <button class="nav-btn" onclick="prevPage()">👈 Back</button>
+                    <button class="nav-btn" onclick="nextPage()">Next 🌙</button>
+                </div>
+            </div>
+            
+            <!-- Page 3 -->
+            <div class="page" id="page3">
+                <h2 class="page-title">Our Special Bond</h2>
+                <div class="page-content">
+                    <p>Just like the moon and stars above,</p>
+                    <p>Our love shines bright, our hearts in love.</p>
+                    <p>This Eid I pray we'll always be,</p>
+                    <p>Together forever, Jahid and Lamia.</p>
+                    
+                    <div style="display: flex; justify-content: center; margin: 20px 0;">
+                        <span style="font-size: 2rem; animation: float 3s ease-in-out infinite 0s;">J</span>
+                        <span style="font-size: 2rem; color: var(--gold); animation: heartbeat 1.5s infinite;">❤️</span>
+                        <span style="font-size: 2rem; animation: float 3s ease-in-out infinite 0.5s;">L</span>
+                    </div>
+                    
+                    <div style="background: rgba(7, 153, 146, 0.1); padding: 10px; border-radius: 10px; margin-top: 15px;">
+                        <p style="font-style: italic; margin: 5px 0;">"Every moment with you feels like Eid"</p>
+                    </div>
+                </div>
+                
+                <div class="page-nav">
+                    <button class="nav-btn" onclick="prevPage()">👈 Back</button>
+                    <button class="nav-btn" onclick="nextPage()">Next 🌸</button>
+                </div>
+            </div>
+            
+            <!-- Page 4 (Final Page) -->
+            <div class="page" id="page4">
+                <h2 class="page-title">Eid Mubarak!</h2>
+                <div class="page-content">
+                    <p>Wishing you an Eid filled with laughter,</p>
+                    <p>Sweet moments and happily ever after.</p>
+                    <p>May Allah accept our prayers and fasting,</p>
+                    <p>And bless our love to be everlasting.</p>
+                    
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ffd700' d='M50,5 L60,35 L90,35 L65,55 L75,85 L50,70 L25,85 L35,55 L10,35 L40,35 Z'/></svg>" 
+                         style="width: 70px; margin: 20px auto; display: block; animation: swing 4s ease-in-out infinite;">
+                         
+                    <div class="special-photo">
+                        <div class="photo-frame"></div>
+                        <!-- REPLACE THIS DIV with your image tag -->
+                        <img src="https://i.ibb.co.com/gZNQdQ9Z/Chat-GPT-Image-Mar-31-2025-05-31-28-AMj.png" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    
+                    <p style="font-family: 'Dancing Script', cursive; font-size: 1.5rem; color: var(--islamic-blue); margin-top: 20px; animation: pulse 2s infinite;">
+                        Forever yours,<br>
+                        Jahid <span style="color: var(--gold);">❤️</span>
+                    </p>
+                </div>
+                
+                <div class="page-nav">
+                    <button class="nav-btn" onclick="prevPage()">👈 Back</button>
+                    <button class="nav-btn" id="surpriseBtn">Special Surprise! 🎉</button>
+                </div>
+            </div>
         </div>
     </div>
     
-    <!-- More Decorations -->
+    <!-- Floating Decorations -->
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ff6b6b' d='M50,10 Q60,0 70,10 Q80,20 70,30 Q60,40 50,30 Q40,20 50,10 Z'/><circle cx='50' cy='10' r='5' fill='%23fff'/></svg>" 
+         class="decoration flower" style="top: 10%; left: 10%; width: 40px;">
+    
     <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path fill='%23ffd700' d='M50,10 L60,40 L90,40 L65,60 L75,90 L50,70 L25,90 L35,60 L10,40 L40,40 Z'/></svg>" 
-         class="decoration" style="top: 80%; right: 15%; width: 30px;">
+         class="decoration" style="top: 80%; right: 15%; width: 30px; animation: rotate 20s linear infinite;">
     
     <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='40' y='10' width='20' height='60' fill='%23cd7f32'/><path fill='%23ffd700' d='M30,20 Q50,0 70,20 Q90,40 70,60 Q50,80 30,60 Q10,40 30,20 Z'/></svg>" 
          class="decoration lantern" style="top: 70%; left: 10%; width: 30px;">
+    
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><ellipse cx='50' cy='60' rx='30' ry='20' fill='%238B4513'/><ellipse cx='50' cy='40' rx='20' ry='30' fill='%238B4513'/></svg>" 
+         class="decoration date" style="top: 20%; right: 5%; width: 25px;">
 
     <script>
         // Card Open/Close
         const cover = document.getElementById('cover');
-        const insideCard = document.getElementById('insideCard');
-        const closeBtn = document.getElementById('closeBtn');
+        const pages = document.getElementById('pages');
         
         cover.addEventListener('click', function() {
-            insideCard.classList.add('active');
+            cover.style.display = 'none';
+            pages.style.display = 'block';
+            showPage(1);
+            confetti({
+                particleCount: 30,
+                spread: 40,
+                origin: { y: 0.6 }
+            });
         });
         
-        closeBtn.addEventListener('click', function() {
-            insideCard.classList.remove('active');
-        });
+        // Page Navigation
+        let currentPage = 1;
+        const totalPages = 4;
         
-        // Scratch Card Implementation
-        const scratchArea = document.getElementById('scratchArea');
-        const scratchOverlay = document.getElementById('scratchOverlay');
-        const scratchMessage = document.getElementById('scratchMessage');
-        
-        let isDrawing = false;
-        let lastPoint = null;
-        let scratchPercent = 0;
-        
-        // Initialize canvas for scratching
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = scratchArea.offsetWidth;
-        canvas.height = scratchArea.offsetHeight;
-        scratchOverlay.appendChild(canvas);
-        
-        // Set canvas styles
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth = 20;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        
-        // Scratch events
-        scratchArea.addEventListener('mousedown', startScratch);
-        scratchArea.addEventListener('touchstart', startScratch);
-        
-        scratchArea.addEventListener('mousemove', scratch);
-        scratchArea.addEventListener('touchmove', scratch);
-        
-        scratchArea.addEventListener('mouseup', endScratch);
-        scratchArea.addEventListener('touchend', endScratch);
-        scratchArea.addEventListener('mouseleave', endScratch);
-        
-        function startScratch(e) {
-            isDrawing = true;
-            lastPoint = getPosition(e);
-        }
-        
-        function scratch(e) {
-            if (!isDrawing) return;
+        function showPage(pageNumber) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(`page${pageNumber}`).classList.add('active');
+            currentPage = pageNumber;
             
-            e.preventDefault();
-            
-            const currentPoint = getPosition(e);
-            
-            ctx.beginPath();
-            ctx.moveTo(lastPoint.x, lastPoint.y);
-            ctx.lineTo(currentPoint.x, currentPoint.y);
-            ctx.stroke();
-            
-            lastPoint = currentPoint;
-            
-            checkScratchProgress();
-        }
-        
-        function endScratch() {
-            isDrawing = false;
-        }
-        
-        function getPosition(e) {
-            const rect = scratchArea.getBoundingClientRect();
-            return {
-                x: (e.clientX || e.touches[0].clientX) - rect.left,
-                y: (e.clientY || e.touches[0].clientY) - rect.top
-            };
-        }
-        
-        function checkScratchProgress() {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const pixels = imageData.data;
-            let transparentPixels = 0;
-            
-            for (let i = 3; i < pixels.length; i += 4) {
-                if (pixels[i] === 0) {
-                    transparentPixels++;
-                }
-            }
-            
-            scratchPercent = Math.round((transparentPixels / (pixels.length / 4)) * 100);
-            
-            if (scratchPercent > 40) {
-                scratchMessage.style.display = 'flex';
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
+            // Small celebration when reaching last page
+            if (pageNumber === totalPages) {
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 30,
+                        spread: 40,
+                        origin: { y: 0.6 }
+                    });
+                }, 300);
             }
         }
         
-        // Initialize scratch overlay
-        function initScratchOverlay() {
-            ctx.fillStyle = '#ccc';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            scratchMessage.style.display = 'none';
+        function nextPage() {
+            if (currentPage < totalPages) {
+                showPage(currentPage + 1);
+            }
         }
         
-        initScratchOverlay();
+        function prevPage() {
+            if (currentPage > 1) {
+                showPage(currentPage - 1);
+            }
+        }
         
-        // Create more floating elements
+        // Surprise Button
+        document.getElementById('surpriseBtn').addEventListener('click', function() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff6b6b', '#ffd166', '#06d6a0', '#118ab2', '#073b4c', '#ffd700']
+            });
+            this.textContent = "I Love You! 💝";
+            setTimeout(() => {
+                this.textContent = "Special Surprise! 🎉";
+            }, 2000);
+            
+            // Add heartbeat to photo
+            const photo = document.querySelector('.special-photo');
+            photo.style.animation = 'heartbeat 0.5s';
+            setTimeout(() => {
+                photo.style.animation = '';
+            }, 500);
+        });
+        
+        // Create floating elements
         function createFloatingElements() {
             const elements = ['🌸', '🌹', '🌼', '🌺', '✨', '🌟', '🌙', '🕌'];
             
@@ -453,6 +565,21 @@
         }
         
         createFloatingElements();
+        
+        // Add music toggle (hidden by default)
+        const audio = new Audio('https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+        audio.loop = true;
+        
+        function toggleMusic() {
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
+        }
+        
+        // Uncomment to add music button:
+        // document.body.innerHTML += `<button onclick="toggleMusic()" style="position:fixed; bottom:20px; right:20px; z-index:1000;">🎵 Music</button>`;
     </script>
 </body>
 </html>
